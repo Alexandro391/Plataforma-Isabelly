@@ -49,7 +49,7 @@ body{font-family:'Quicksand',sans-serif;background:var(--bg);color:var(--text);m
 .btn-sm-top:hover{border-color:var(--pink);color:var(--pink);}
 
 /* LAYOUT */
-#app{display:none;min-height:100vh;position:relative;z-index:1;}
+#app{display:block;min-height:100vh;position:relative;z-index:1;}
 #content{padding:18px 16px 96px;max-width:720px;margin:0 auto;}
 
 /* PANELS */
@@ -188,14 +188,12 @@ body{font-family:'Quicksand',sans-serif;background:var(--bg);color:var(--text);m
 <div class="deco-bg" id="deco-bg"></div>
 
 <!-- LOGIN -->
-<div id="login-screen">
+<div id="login-screen" style="display:none">
   <div class="login-card">
     <span class="login-mascot">🌸</span>
     <div class="login-title">Olá, Isabelly! ✨</div>
-    <p class="login-sub">Seu cantinho especial de estudos 💕<br>Digite sua senha para entrar!</p>
-    <input class="login-input" type="password" id="login-pass" placeholder="🔑 Senha" onkeydown="if(event.key==='Enter')doLogin()">
+    <p class="login-sub">Seu cantinho especial de estudos 💕</p>
     <button class="login-btn" onclick="doLogin()">✨ Entrar no meu cantinho</button>
-    <p class="login-hint">Primeira vez? Digite qualquer senha — ela será salva! 🌈</p>
   </div>
 </div>
 
@@ -535,6 +533,11 @@ window._onFBUser = async function(user) {
   initApp();
 };
 
+// Inicia direto sem login
+document.getElementById('app').style.display = 'block';
+try { const d=localStorage.getItem('isabelly_v2'); if(d) Object.assign(state, JSON.parse(d)); } catch(e){}
+setTimeout(initApp, 100);
+
 async function loadFromFirestore() {
   if(!currentUser || !window._fb) return;
   try {
@@ -590,8 +593,7 @@ async function doLogin() {
     await signInWithPopup(auth, provider);
   } catch(e) { toast('Erro ao entrar: ' + e.message); }
 }
-document.querySelector('.login-btn').onclick = doLogin;
-document.getElementById('login-pass').style.display = 'none'; // hide password field, use Google
+// login removido
 
 async function doLogout() {
   if(!window._fb) return;
@@ -854,10 +856,8 @@ function termFrequency(tokens) {
   const f={}; tokens.forEach(t=>f[t]=(f[t]||0)+1); return f;
 }
 function scoreSentences(text) {
-  const raw = text.replace(/
-{2,}/g,' ').replace(/\s+/g,' ');
-  const sents = raw.match(/[^.!?;]+[.!?;]+/g) || raw.split('
-').filter(s=>s.trim().length>30);
+  const raw = text.replace(/\n{2,}/g,' ').replace(/\s+/g,' ');
+  const sents = raw.match(/[^.!?;]+[.!?;]+/g) || raw.split('\n').filter(s=>s.trim().length>30);
   const allTok = tokenize(text); const freq = termFrequency(allTok); const total = allTok.length||1;
   return sents.map((s,pos)=>{
     const tok = tokenize(s);
